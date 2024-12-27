@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authorization and QR Code Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        #qrcode {
+            margin-top: 20px;
+            width: 200px;
+            height: 200px;
+        }
+    </style>
+</head>
+<body>
+<h1>Login</h1>
+<form id="loginForm">
+    <label for="username">Username:</label>
+    <input type="text" id="username" name="username" required><br><br>
+    <label for="password">Password:</label>
+    <input type="password" id="password" name="password" required><br><br>
+    <button type="submit">Login</button>
+</form>
+
+<div id="qrcode"></div>
+
+<script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
+
+<script>
+    const backendUrl = 'https://some_backend/login';
+    const tokenKey = 'authToken';
+    const timeKey = 'authTime';
+    const activeUserKey = 'activeUser';
+    const qrCodeContainer = document.getElementById('qrcode');
+
+    function checkToken() {
+        const token = localStorage.getItem(tokenKey);
+        const storedTime = localStorage.getItem(timeKey);
+        const activeUser = localStorage.getItem(activeUserKey);
+        if (token && storedTime) {
+            const elapsedHours = (Date.now() - parseInt(storedTime, 10)) / (1000 * 60 * 60);
+            if (elapsedHours > 12) {
+                localStorage.clear();
+                location.reload();
+            } else {
+                loginForm.style.display = 'none';
+                generateQRCode(token, activeUser);
+            }
+        }
+    }
+
+    function generateQRCode(token, activeUser) {
+        let qrCode;
+
+        function updateQR() {
+            const currentTime = Date.now();
+            const concatenatedString = `${token}_${currentTime}_${activeUser}`;
+            const encodedString = btoa(concatenatedString);
+
+            if (!qrCode) {
+                qrCode = new QRCode(qrCodeContainer, {
+                    text: encodedString,
+                    width: 200,
+                    height: 200
+                });
+            } else {
+                qrCode.clear();
+                qrCode.makeCode(encodedString);
+            }
+        }
+
+        setInterval(updateQR, 5000);
+        updateQR();
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        try {
+            //TODO: Implement the backend API call
+            // const response = await fetch(backendUrl, {
+            //     method: 'POST',
+            //     headers: { 'Content-Type': 'application/json' },
+            //     body: JSON.stringify({ username, password })
+            // });
+            //
+            // const result = await response.json();
+
+            // TODO: remove
+            result = { status: true };
+
+            if (result.status) {
+                localStorage.setItem(activeUserKey, username);
+                localStorage.setItem(tokenKey, generateToken(16));
+                localStorage.setItem(timeKey, Date.now());
+                location.reload();
+            } else {
+                alert('Authorization failed. Please check your credentials.');
+            }
+        } catch (error) {
+            console.error('Error during login:', error);
+            alert('An error occurred. Please try again later.');
+        }
+    });
+
+    function generateToken(length) {
+        let result = '';
+        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        const charactersLength = characters.length;
+        let counter = 0;
+        while (counter < length) {
+            result += characters.charAt(Math.floor(Math.random() * charactersLength));
+            counter += 1;
+        }
+        return result;
+    }
+
+    checkToken();
+</script>
+</body>
+</html>
+
