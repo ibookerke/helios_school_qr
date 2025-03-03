@@ -142,7 +142,6 @@
             const response = await fetch(backendUrl + '?method=GetRegInfo&portName=H1TEST&PIN=' + code, {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json'},
-                mode: 'no-cors',
             });
 
             console.log("before json", response)
