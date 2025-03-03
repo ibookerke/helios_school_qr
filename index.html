@@ -77,7 +77,7 @@
 <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
 
 <script>
-    const backendUrl = 'https://some_backend/verify';
+    const backendUrl = 'http://test.fvr.kz/fvrServices/FVRMobile';
     const qrCodeContainer = document.getElementById('qrcode');
     const errorMessage = document.getElementById('errorMessage');
     const codeForm = document.getElementById('codeForm');
@@ -136,22 +136,25 @@
         errorMessage.style.display = 'none';
 
         const code = document.getElementById('codeInput').value.toUpperCase();
+        console.log("lala", backendUrl + '?method=GetRegInfo&portName=H1TEST&PIN=' + code)
 
         try {
-            const response = await fetch(backendUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ code })
+            const response = await fetch(backendUrl + '?method=GetRegInfo&portName=H1TEST&PIN=' + code, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json'},
+                mode: 'no-cors',
             });
 
+            console.log("before json", response)
             const result = await response.json();
 
-            if (result.bin) {
-                storeBin(result.bin);
-                codeForm.style.display = 'none';
-                generateQRCode(result.bin);
-            } else {
+            if (result.ReturnStatuses[0].StatusCode !== '0') {
                 errorMessage.style.display = 'block';
+                errorMessage.innerHTML = "Ошибка подключения к серверам Favorit";
+            } else {
+                storeBin(result.webID);
+                codeForm.style.display = 'none';
+                generateQRCode(result.webID);
             }
         } catch (error) {
             console.error('Error during verification:', error);
