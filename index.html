@@ -225,7 +225,7 @@
             if (result.ReturnStatuses[0].StatusCode !== '0') {
                 errorMessage.style.display = 'block';
                 errorMessage.innerHTML = "Ошибка подключения к серверам Favorit";
-            } else if (result.ReturnStatuses[0].StatusCode === '2') {
+            } else if (result.ReturnStatuses[0].StatusCode == '2') {
                 errorMessage.style.display = 'block';
                 errorMessage.innerHTML = "Неправильный код, попробуйте снова";
             }
