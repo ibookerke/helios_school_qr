@@ -101,7 +101,33 @@
     const TIME_KEY = 'binStorageTime';
     let qrCode;
 
+    function calculateQRSize() {
+        // Get window dimensions
+        const windowHeight = window.innerHeight;
+        const windowWidth = window.innerWidth;
+
+        // Use 70% of the smaller dimension
+        const smallerDimension = Math.min(windowHeight, windowWidth);
+        const qrSize = Math.floor(smallerDimension * 0.8);
+
+        return qrSize;
+    }
+
+    function resizeQRCode() {
+        const qrSize = calculateQRSize();
+
+        // If QR code exists, resize it
+        if (qrCodeContainer.querySelector('img')) {
+            const img = qrCodeContainer.querySelector('img');
+            img.style.width = `${qrSize}px`;
+            img.style.height = `${qrSize}px`;
+        }
+    }
+
     function generateQRCode(bin) {
+        document.getElementById('logo').style.display = 'none';
+        const qrSize = calculateQRSize();
+
         function updateQR() {
             const currentTime = Date.now();
             const concatenatedString = `${bin}_${currentTime}`;
@@ -110,12 +136,30 @@
             if (!qrCode) {
                 qrCode = new QRCode(qrCodeContainer, {
                     text: encodedString,
-                    width: 400,
-                    height: 400
+                    width: qrSize,
+                    height: qrSize
                 });
+
+                // Add a small delay to ensure the QR code is rendered before styling
+                setTimeout(() => {
+                    const img = qrCodeContainer.querySelector('img');
+                    if (img) {
+                        img.style.width = `${qrSize}px`;
+                        img.style.height = `${qrSize}px`;
+                    }
+                }, 100);
             } else {
                 qrCode.clear();
                 qrCode.makeCode(encodedString);
+
+                // Resize the newly generated QR code
+                setTimeout(() => {
+                    const img = qrCodeContainer.querySelector('img');
+                    if (img) {
+                        img.style.width = `${qrSize}px`;
+                        img.style.height = `${qrSize}px`;
+                    }
+                }, 100);
             }
         }
 
@@ -169,10 +213,23 @@
             console.log("before json", response)
             const result = await response.json();
 
+            // TODO: for tests
+            // result.webID = "48a389d9-b732-4def-8ca8-b7cc6c4105a2"
+            // storeBin(result.webID);
+            // codeForm.style.display = 'none';
+            // generateQRCode(result.webID);
+            // changeCardTitle();
+            // return
+
+
             if (result.ReturnStatuses[0].StatusCode !== '0') {
                 errorMessage.style.display = 'block';
                 errorMessage.innerHTML = "Ошибка подключения к серверам Favorit";
-            } else {
+            } else if (result.ReturnStatuses[0].StatusCode === '2') {
+                errorMessage.style.display = 'block';
+                errorMessage.innerHTML = "Неправильный код, попробуйте снова";
+            }
+            else {
                 storeBin(result.webID);
                 codeForm.style.display = 'none';
                 generateQRCode(result.webID);
@@ -191,6 +248,9 @@
 
     // Check for stored bin on page load
     checkStoredBin();
+
+    // Add event listener for window resize
+    window.addEventListener('resize', resizeQRCode);
 </script>
 </body>
 </html>
