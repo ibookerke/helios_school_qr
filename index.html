@@ -224,18 +224,18 @@
             // return
 
 
-            if (result.ReturnStatuses[0].StatusCode !== '0') {
-                errorMessage.style.display = 'block';
-                errorMessage.innerHTML = "Ошибка подключения к серверам Favorit";
-            } else if (result.ReturnStatuses[0].StatusCode == '2') {
-                errorMessage.style.display = 'block';
-                errorMessage.innerHTML = "Неправильный код, попробуйте снова";
-            }
-            else {
+            if (result.ReturnStatuses[0].StatusCode === '0') {
                 storeBin(result.webID);
                 codeForm.style.display = 'none';
                 generateQRCode(result.webID);
                 changeCardTitle();
+            } else if (result.ReturnStatuses[0].StatusCode === '2') {
+                errorMessage.style.display = 'block';
+                errorMessage.innerHTML = "Неправильный код, попробуйте снова";
+            }
+            else {
+                errorMessage.style.display = 'block';
+                errorMessage.innerHTML = "Ошибка подключения к серверам Favorit";
             }
         } catch (error) {
             console.error('Error during verification:', error);
