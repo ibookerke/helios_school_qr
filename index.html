@@ -97,7 +97,7 @@
     // const backendUrl = 'http://test.fvr.kz/fvrServices/FVRMobile';
 
     // prod
-    const backendUrl = 'http://cloud.fvr.kz/fvrServices/FVRMobile';
+    const backendUrl = '/api';
 
 
     const qrCodeContainer = document.getElementById('qrcode');
@@ -213,7 +213,6 @@
         try {
             const response = await fetch(backendUrl + '?method=GetRegInfo&portName=H1&PIN=' + code, {
                 method: 'GET',
-                referrerPolicy: 'unsafe-url',
                 headers: {
                     'Content-Type': 'application/json',
                 },
