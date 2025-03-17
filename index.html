@@ -64,6 +64,25 @@
             margin-top: 10px;
             display: none;
         }
+        .select {
+            -moz-appearance: none;
+            -webkit-appearance: none;
+            background: white;
+            border-radius: 4px;
+            border: 2px solid #ddd;
+            cursor: pointer;
+            padding: 12px;
+            width: 100%;
+            font-size: 18px;
+
+            &:focus {
+                color: black;
+            }
+
+            &::-ms-expand {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body>
@@ -74,6 +93,17 @@
 <div class="container">
     <h1 id="card_title">Введите пин-код</h1>
     <form id="codeForm">
+        <div>
+            <select id="region" class="select" required>
+                <option value="">Выберите регион</option>
+                <option value="H1">ВКО, Семей, Акмолинская</option>
+                <option value="H2">Сады, колледжи, доп.образование</option>
+                <option value="H3">Туркестан</option>
+                <option value="H5">Жетысу</option>
+                <option value="TG">Павлодар</option>
+            </select>
+        </div>
+
         <input type="text"
                id="codeInput"
                class="code-input"
@@ -208,10 +238,19 @@
         errorMessage.style.display = 'none';
 
         const code = document.getElementById('codeInput').value.toUpperCase();
-        console.log("lala", backendUrl + '?method=GetRegInfo&portName=TG&PIN=' + code)
+
+        const region = document.getElementById('region').value;
+        if (!region) {
+            errorMessage.style.display = 'block';
+            errorMessage.innerHTML = "Выберите регион";
+            return;
+        }
+
+        const uri = backendUrl + '?method=GetRegInfo&portName=' + region + '&PIN=' + code
+        console.log("uri", uri)
 
         try {
-            const response = await fetch(backendUrl + '?method=GetRegInfo&portName=TG&PIN=' + code, {
+            const response = await fetch(uri, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
