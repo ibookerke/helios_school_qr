@@ -306,44 +306,46 @@
     });
 
     async function fetchOptions() {
-        const response = await fetch(getOptionsUrl, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        });
-
-        console.log('get regions response:', response)
-        if (!response.ok) {
-            throw new Error('Ошибка получения списка регионов');
-        }
-        const options = await response.json();
-        renderOptions(options);
-    }
-
-    function renderOptions(options) {
-        console.log("regions", options)
-        const regionSelect = document.getElementById('region');
 
         try {
-            // Clear existing options except the first "Выберите регион" option
-            while (regionSelect.options.length > 1) {
-                regionSelect.remove(1);
-            }
-
-            // Populate select with fetched options
-            options.forEach(option => {
-                const newOption = document.createElement('option');
-                newOption.value = option.segment;
-                newOption.textContent = option.name_ru;
-                regionSelect.appendChild(newOption);
+            const response = await fetch(getOptionsUrl, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
             });
+
+            console.log('get regions response:', response)
+            if (!response.ok) {
+                throw new Error('Ошибка получения списка регионов');
+            }
+            const options = await response.json();
+            renderOptions(options);
         } catch (error) {
             console.error('Error fetching region options:', error);
             alert("Ошибка получения списка регионов");
             // reload
             location.reload();
         }
+    }
+
+    function renderOptions(options) {
+        console.log("regions", options)
+        const regionSelect = document.getElementById('region');
+
+        // Clear existing options except the first "Выберите регион" option
+        while (regionSelect.options.length > 1) {
+            regionSelect.remove(1);
+        }
+
+        // Populate select with fetched options
+        options.forEach(option => {
+            const newOption = document.createElement('option');
+            newOption.value = option.segment;
+            newOption.textContent = option.name_ru;
+            regionSelect.appendChild(newOption);
+        });
+
     }
 
     // Format input as user types
