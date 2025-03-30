@@ -101,11 +101,11 @@
         <div>
             <select id="region" class="select" required>
                 <option value="">Выберите регион</option>
-                <option value="H1">ВКО, Семей, Акмолинская</option>
-                <option value="H2">Сады, колледжи, доп.образование</option>
-                <option value="H3">Туркестан</option>
-                <option value="H5">Жетысу</option>
-                <option value="TG">Павлодар</option>
+<!--                <option value="H1">ВКО, Семей, Акмолинская</option>-->
+<!--                <option value="H2">Сады, колледжи, доп.образование</option>-->
+<!--                <option value="H3">Туркестан</option>-->
+<!--                <option value="H5">Жетысу</option>-->
+<!--                <option value="TG">Павлодар</option>-->
             </select>
         </div>
 
@@ -131,49 +131,7 @@
 <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
 
 <script>
-    // const getOptionsUrl = "http://cloud.fvr.kz/getSegments/visible"
-    //
-    //
-    // document.addEventListener('DOMContentLoaded', async () => {
-    //     const regionSelect = document.getElementById('region');
-    //
-    //     try {
-    //         const response = await fetch(getOptionsUrl, {
-    //             method: 'GET',
-    //             headers: {
-    //                 'Content-Type': 'application/json',
-    //             }
-    //         });
-    //
-    //         console.log('get regions response:', response)
-    //         if (!response.ok) {
-    //             throw new Error('Ошибка получения списка регионов');
-    //         }
-    //         const options = await response.json();
-    //
-    //         console.log()
-    //
-    //         // Clear existing options except the first "Выберите регион" option
-    //         while (regionSelect.options.length > 1) {
-    //             regionSelect.remove(1);
-    //         }
-    //
-    //         // Populate select with fetched options
-    //         options.forEach(option => {
-    //             const newOption = document.createElement('option');
-    //             newOption.value = option.segment;
-    //             newOption.textContent = option.name_ru;
-    //             regionSelect.appendChild(newOption);
-    //         });
-    //     } catch (error) {
-    //         console.error('Error fetching region options:', error);
-    //         alert("Ошибка получения списка регионов");
-    //         // reload
-    //         location.reload();
-    //     }
-    // });
-
-
+    const getOptionsUrl = "http://cloud.fvr.kz/getSegments/visible"
 
     // test
     // const backendUrl = 'http://test.fvr.kz/fvrServices/FVRMobile';
@@ -273,6 +231,7 @@
             return true;
         }
 
+        fetchOptions()
 
         return false;
     }
@@ -345,6 +304,47 @@
             errorMessage.style.display = 'block';
         }
     });
+
+    async function fetchOptions() {
+        const response = await fetch(getOptionsUrl, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        console.log('get regions response:', response)
+        if (!response.ok) {
+            throw new Error('Ошибка получения списка регионов');
+        }
+        const options = await response.json();
+        renderOptions(options);
+    }
+
+    function renderOptions(options) {
+        console.log("regions", options)
+        const regionSelect = document.getElementById('region');
+
+        try {
+            // Clear existing options except the first "Выберите регион" option
+            while (regionSelect.options.length > 1) {
+                regionSelect.remove(1);
+            }
+
+            // Populate select with fetched options
+            options.forEach(option => {
+                const newOption = document.createElement('option');
+                newOption.value = option.segment;
+                newOption.textContent = option.name_ru;
+                regionSelect.appendChild(newOption);
+            });
+        } catch (error) {
+            console.error('Error fetching region options:', error);
+            alert("Ошибка получения списка регионов");
+            // reload
+            location.reload();
+        }
+    }
 
     // Format input as user types
     document.getElementById('codeInput').addEventListener('input', (e) => {
