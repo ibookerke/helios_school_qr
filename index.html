@@ -183,6 +183,7 @@
             const serverAdjustedTime = currentBrowserTime + timeDifference;
 
             console.log("current time:", currentBrowserTime)
+            console.log("qr time:", serverAdjustedTime)
             console.log("time data:", timeData)
 
             const concatenatedString = `${timeData.webID}_${serverAdjustedTime}`;
