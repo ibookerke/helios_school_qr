@@ -182,6 +182,9 @@
             const timeDifference = timeData.timeDiff;
             const serverAdjustedTime = currentBrowserTime + timeDifference;
 
+            console.log("current time:", currentBrowserTime)
+            console.log("time data:", timeData)
+
             const concatenatedString = `${timeData.webID}_${serverAdjustedTime}`;
             const encodedString = btoa(concatenatedString);
 
