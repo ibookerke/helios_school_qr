@@ -172,56 +172,21 @@
         }
     }
 
-    // Helper function to format date as Y-m-d H:i:s
-    function formatDateTime(date) {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-        const seconds = String(date.getSeconds()).padStart(2, '0');
-
-        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-    }
-
-    // Helper function to parse Y-m-d H:i:s format to Date object
-    function parseDateTime(dateTimeString) {
-        // Parse "2025-05-27 16:26:11" format
-        const parts = dateTimeString.match(/(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})/);
-
-        if (!parts) {
-            throw new Error('Invalid datetime format. Expected Y-m-d H:i:s');
-        }
-
-        const year = parseInt(parts[1]);
-        const month = parseInt(parts[2]) - 1; // JavaScript months are 0-indexed
-        const day = parseInt(parts[3]);
-        const hours = parseInt(parts[4]);
-        const minutes = parseInt(parts[5]);
-        const seconds = parseInt(parts[6]);
-
-        return new Date(year, month, day, hours, minutes, seconds);
-    }
-
     function generateQRCode(timeData) {
         document.getElementById('logo').style.display = 'none';
         const qrSize = calculateQRSize();
 
         function updateQR() {
-            // Get current browser time as Date object
-            const currentBrowserTime = new Date();
+            // Calculate server-adjusted time
+            const currentBrowserTime = Date.now();
+            const timeDifference = timeData.timeDiff;
+            const serverAdjustedTime = currentBrowserTime + timeDifference;
 
-            // Apply the time difference to get server-adjusted time
-            const serverAdjustedTime = new Date(currentBrowserTime.getTime() + timeData.timeDiff);
+            console.log("current time:", currentBrowserTime)
+            console.log("qr time:", serverAdjustedTime)
+            console.log("time data:", timeData)
 
-            // Format the server-adjusted time as Y-m-d H:i:s
-            const formattedDateTime = formatDateTime(serverAdjustedTime);
-
-            console.log("current browser time:", formatDateTime(currentBrowserTime));
-            console.log("server adjusted time:", formattedDateTime);
-            console.log("time data:", timeData);
-
-            const concatenatedString = `${timeData.webID}_${formattedDateTime}`;
+            const concatenatedString = `${timeData.webID}_${serverAdjustedTime}`;
             const encodedString = btoa(concatenatedString);
 
             if (!qrCode) {
@@ -328,7 +293,7 @@
         // Adjust for timezone to get the actual UTC timestamp
         const utcTimestamp = date.getTime() - tzOffsetMs;
 
-        return new Date(utcTimestamp);
+        return utcTimestamp;
     }
 
     async function fetchServerTime() {
@@ -346,17 +311,14 @@
 
             const timeData = await response.json();
 
-            // Parse the time string and return as Date object
-            const serverTime = parseServerTime(timeData.time);
+            // Parse the time string instead of using timestamp
+            const serverTimeMs = parseServerTime(timeData.time);
 
-            console.log('Parsed server time:', formatDateTime(serverTime));
+            console.log('Parsed server time:', serverTimeMs);
             console.log('Original time string:', timeData.time);
 
-            return serverTime;
+            return serverTimeMs;
         } catch (error) {
-            //TODO: for tests
-            // return new Date();
-
             console.error('Error fetching server time:', error);
             throw error;
         }
@@ -365,28 +327,6 @@
     document.getElementById('codeForm').addEventListener('submit', async (event) => {
         event.preventDefault();
         errorMessage.style.display = 'none';
-
-        // TODO: for tests
-        // const result = {
-        //     webID: "48a389d9-b732-4def-8ca8-b7cc6c4105a2"
-        // }
-        //
-        // // Create fake time data for testing
-        // const browserTime = new Date();
-        // const serverTime = new Date(browserTime.getTime() - (60000 * 60));
-        // const timeDiff = serverTime.getTime() - browserTime.getTime();
-        //
-        // const timeData = {
-        //     webID: result.webID,
-        //     timeDiff: timeDiff
-        // };
-        //
-        // storeTimeData(timeData);
-        // codeForm.style.display = 'none';
-        // generateQRCode(timeData);
-        // changeCardTitle();
-        // showClearButton();
-        // return
 
         const code = document.getElementById('codeInput').value.toUpperCase();
 
@@ -415,15 +355,26 @@
 
             console.log("decoded response:", result)
 
+            // TODO: for tests
+            // result.webID = "48a389d9-b732-4def-8ca8-b7cc6c4105a2"
+            // storeBin(result.webID);
+            // codeForm.style.display = 'none';
+            // generateQRCode(result.webID);
+            // changeCardTitle();
+            // return
+
+
             if (result.ReturnStatuses[0].StatusCode === '0') {
                 // Fetch server time after successful webID retrieval
                 try {
                     const serverTime = await fetchServerTime();
-                    const browserTime = new Date();
-                    const timeDiff = serverTime.getTime() - browserTime.getTime();
+                    const browserTime = Date.now();
+                    const timeDiff = serverTime - browserTime;
 
                     const timeData = {
                         webID: result.webID,
+                        serverTime: serverTime,
+                        browserTime: browserTime,
                         timeDiff: timeDiff
                     };
 
@@ -469,18 +420,9 @@
             const options = await response.json();
             renderOptions(options);
         } catch (error) {
-            // TODO: for tests:
-            // const options = [
-            //     {"segment": "H1", "name_ru": "ВКО, Семей, Акмолинская"},
-            //     {"segment": "H2", "name_ru": "Сады, колледжи, доп.образование"},
-            //     {"segment": "H3", "name_ru": "Туркестан"},
-            //     {"segment": "H5", "name_ru": "Жетысу"},
-            //     {"segment": "TG", "name_ru": "Павлодар"}
-            // ]
-            // renderOptions(options);
-
             console.error('Error fetching region options:', error);
             alert("Ошибка получения списка регионов");
+            // reload
             location.reload();
         }
     }
